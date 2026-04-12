@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark" id="dash-html-root">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard · AI City Digital Twin</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body class="bg-slate-950 text-slate-100">
+    <nav
+      class="navbar navbar-expand-lg navbar-dark border-bottom border-emerald-500/15 bg-slate-950/90 backdrop-blur"
+    >
+      <div class="container-fluid px-lg-4">
+        <a class="navbar-brand d-flex align-items-center gap-2 text-emerald-300" href="/" target="_parent">
+          <span
+            class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-slate-950 fw-bold"
+            >AI</span
+          >
+          <span class="fw-semibold text-slate-50">City Digital Twin</span>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mainNav"
+          aria-controls="mainNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+            <li class="nav-item d-flex align-items-center gap-2 px-lg-2">
+              <label class="small text-slate-400 mb-0" for="city-select">City</label>
+              <select id="city-select" class="form-select form-select-sm w-auto bg-slate-900 text-slate-100 border-emerald-500/40">
+                <option value="Indore">Indore</option>
+                <option value="Ujjain" selected>Ujjain</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Bhopal">Bhopal</option>
+              </select>
+              <span id="simhastha-badge" class="badge rounded-pill text-bg-success"
+                >Simhastha 2028 Special</span
+              >
+            </li>
+            <li class="nav-item">
+              <span class="badge rounded-pill text-bg-dark border border-emerald-500/40 small"
+                >92%+ accuracy on real Indian city data</span
+              >
+            </li>
+            <li class="nav-item">
+              <button id="dash-theme-toggle" type="button" class="btn btn-sm btn-outline-secondary rounded-pill">
+                Theme
+              </button>
+            </li>
+            <li class="nav-item">
+              <button id="reset-demo-btn" type="button" class="btn btn-sm btn-outline-warning rounded-pill">
+                Reset Demo
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container-fluid px-lg-4 py-3">
+      <div class="row g-3">
+        <div class="col-xl-8">
+          <div class="row g-3">
+            <div class="col-lg-5">
+              <section class="card bg-slate-900/80 border border-emerald-500/20 shadow-sm h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 text-emerald-300 mb-0">Environmental controls</h2>
+                    <span class="badge text-bg-dark border border-slate-700">Live sliders</span>
+                  </div>
+                  <p class="small text-slate-400">
+                    Tune meteorology and mobility levers — the twin recomputes AQI instantly using
+                    the embedded Random Forest model.
+                  </p>
+
+                  <div class="mb-3">
+                    <label class="form-label small d-flex justify-content-between" for="slider-temp">
+                      <span>Temperature (°C)</span>
+                      <span id="val-temp" class="text-emerald-300">34</span>
+                    </label>
+                    <input type="range" class="form-range" id="slider-temp" min="18" max="45" step="1" />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small d-flex justify-content-between" for="slider-traffic">
+                      <span>Traffic density (vehicles / hour)</span>
+                      <span id="val-traffic" class="text-emerald-300">8800</span>
+                    </label>
+                    <input type="range" class="form-range" id="slider-traffic" min="500" max="15000" step="100" />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small d-flex justify-content-between" for="slider-green">
+                      <span>Green cover (%)</span>
+                      <span id="val-green" class="text-emerald-300">44</span>
+                    </label>
+                    <input type="range" class="form-range" id="slider-green" min="5" max="80" step="1" />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small d-flex justify-content-between" for="slider-humidity">
+                      <span>Humidity (%)</span>
+                      <span id="val-humidity" class="text-emerald-300">48</span>
+                    </label>
+                    <input type="range" class="form-range" id="slider-humidity" min="20" max="95" step="1" />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small d-flex justify-content-between" for="slider-wind">
+                      <span>Wind speed (km/h)</span>
+                      <span id="val-wind" class="text-emerald-300">10</span>
+                    </label>
+                    <input type="range" class="form-range" id="slider-wind" min="0" max="40" step="1" />
+                  </div>
+
+                  <div class="d-grid gap-2">
+                    <button id="simulate-btn" type="button" class="btn btn-gradient text-slate-950 fw-semibold">
+                      Simulate Scenario
+                    </button>
+                    <button id="save-simulation-btn" type="button" class="btn btn-outline-success btn-sm">
+                      Save to My Simulations
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="col-lg-7">
+              <section class="card bg-slate-900/80 border border-cyan-500/20 shadow-sm mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 text-cyan-300 mb-0">AQI intelligence</h2>
+                    <span id="aqi-pill" class="badge rounded-pill text-bg-dark border border-cyan-500/40"
+                      >Current AQI: —</span
+                    >
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <div id="plot-bar" class="plot-shell"></div>
+                    </div>
+                    <div class="col-md-6">
+                      <div id="plot-gauge" class="plot-shell"></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card bg-slate-900/80 border border-emerald-500/20 shadow-sm mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 text-emerald-300 mb-0">AI recommendations (Ollama)</h2>
+                    <span class="badge text-bg-dark border border-emerald-500/30 small">llama3.2 / phi3</span>
+                  </div>
+                  <div id="ai-reco-text" class="small text-slate-200 reco-box">
+                    Run a simulation to generate localized guidance for administrators and field teams.
+                  </div>
+                </div>
+              </section>
+
+              <section class="card bg-slate-900/80 border border-sky-500/25 shadow-sm">
+                <div class="card-body">
+                  <h2 class="h6 text-sky-300 mb-3">Impact calculator</h2>
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <div class="impact-tile">
+                        <p class="small text-slate-400 mb-1">Respiratory cases prevented (est.)</p>
+                        <p id="impact-resp" class="h4 mb-0 text-emerald-300">—</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="impact-tile">
+                        <p class="small text-slate-400 mb-1">CO₂ saved (kg / day est.)</p>
+                        <p id="impact-co2" class="h4 mb-0 text-cyan-300">—</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="impact-tile">
+                        <p class="small text-slate-400 mb-1">Environment score (0–100)</p>
+                        <p id="impact-score" class="h4 mb-0 text-sky-300">—</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="col-12">
+              <section class="card bg-slate-900/80 border border-emerald-500/20 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                    <div>
+                      <h2 class="h6 text-emerald-300 mb-1">India mobility map</h2>
+                      <p class="small text-slate-400 mb-0">
+                        Click a marker to load that city’s default twin parameters. Ujjain highlights the
+                        Simhastha 2028 rehearsal corridor.
+                      </p>
+                    </div>
+                    <span class="badge align-self-center text-bg-success bg-opacity-25 border border-success/40"
+                      >Shipra river cities emphasized</span
+                    >
+                  </div>
+                  <div id="map" class="rounded-3 border border-slate-800 shadow-inner"></div>
+                  <p id="map-note" class="small text-emerald-300 mt-2 mb-0"></p>
+                </div>
+              </section>
+            </div>
+
+            <div class="col-12">
+              <section class="card bg-slate-900/80 border border-slate-700 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                    <h2 class="h6 text-slate-100 mb-0">My Simulations</h2>
+                    <button id="download-pdf-btn" type="button" class="btn btn-sm btn-outline-info">
+                      Download Full Report as PDF
+                    </button>
+                  </div>
+                  <ul class="nav nav-tabs mb-3" id="sim-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                      <button
+                        class="nav-link active"
+                        id="tab-list-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#tab-list"
+                        type="button"
+                        role="tab"
+                      >
+                        History (last 8)
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button
+                        class="nav-link"
+                        id="tab-detail-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#tab-detail"
+                        type="button"
+                        role="tab"
+                      >
+                        Selected detail
+                      </button>
+                    </li>
+                  </ul>
+                  <div class="tab-content" id="sim-tab-content">
+                    <div class="tab-pane fade show active" id="tab-list" role="tabpanel">
+                      <div id="simulations-list" class="list-group small"></div>
+                    </div>
+                    <div class="tab-pane fade" id="tab-detail" role="tabpanel">
+                      <pre id="simulation-detail" class="small bg-slate-950 p-3 rounded-3 text-slate-200 mb-0"></pre>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-4">
+          <aside class="card bg-slate-900/90 border border-emerald-500/25 shadow-lg h-100 sticky-top" style="top: 1rem">
+            <div class="card-body d-flex flex-column" style="min-height: 520px">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h6 text-emerald-300 mb-0">AI chat assistant</h2>
+                <span class="badge text-bg-dark border border-emerald-500/40 small">Ollama</span>
+              </div>
+              <p class="small text-slate-400">
+                Ask anything about this scenario — the assistant receives your latest sliders and AQI
+                context.
+              </p>
+              <div id="chat-stream" class="flex-grow-1 chat-stream border border-slate-800 rounded-3 p-2 mb-2"></div>
+              <div class="input-group input-group-sm">
+                <input
+                  id="chat-input"
+                  type="text"
+                  class="form-control bg-slate-950 text-slate-100 border-slate-700"
+                  placeholder="Ask about mitigation, health, or logistics…"
+                />
+                <button id="chat-send-btn" class="btn btn-success" type="button">Send</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <footer class="py-4 mt-3 border-top border-slate-800 small text-slate-500">
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+          <span>Made for Smart Cities Mission &amp; Simhastha 2028 · Twin dashboard shell</span>
+          <span>Replace footer credit with your name for submission.</span>
+        </div>
+      </footer>
+    </main>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      window.ACD_API_BASE = "";
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  </body>
+</html>
