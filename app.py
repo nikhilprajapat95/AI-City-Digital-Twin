@@ -17,10 +17,10 @@ from flask_sqlalchemy import SQLAlchemy
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 
-try:
-    import ollama
-except ImportError:  # pragma: no cover - defensive for constrained environments
-    ollama = None
+import google.generativeai as genai
+
+# Configure Gemini API
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 HTML = None
 LOGGER = logging.getLogger("ai_city_twin")
@@ -184,56 +184,25 @@ def predict_aqi(feature_dict):
         raise
 
 
-def call_ollama_chat(system_prompt, user_prompt, model_name="llama3.2"):
+def call_ai_chat(system_prompt, user_prompt):
     """
-    Invoke a local Ollama chat completion with graceful degradation.
-    Tries llama3.2 first, then phi3 as a fallback when the primary model is unavailable.
+    Gemini AI call (optimized for your available models)
     """
     try:
-        if ollama is None:
-            return (
-                "Ollama Python client is not installed. "
-                "Install dependencies and run `ollama serve` with model llama3.2."
-            )
+        model = genai.GenerativeModel("gemini-2.5-flash")
 
-        for candidate in [model_name, "llama2", "llama3.2:3b"]:
-            try:
-                response = ollama.chat(
-                    model=candidate,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                )
-                if isinstance(response, dict):
-                    message = response.get("message")
-                else:
-                    message = getattr(response, "message", None)
-
-                if isinstance(message, dict):
-                    content = (message.get("content") or "").strip()
-                else:
-                    content = (getattr(message, "content", "") or "").strip()
-                if content:
-                    return content
-            except Exception as inner_exc:
-                app.logger.warning(
-                    "Ollama model %s failed, trying fallback: %s", candidate, inner_exc
-                )
-                continue
-
-        return (
-            "The model returned an empty response. Try again or check `ollama list` "
-            "for llama3.2 or phi3."
+        response = model.generate_content(
+            f"{system_prompt}\n\n{user_prompt}"
         )
+
+        if response and hasattr(response, "text"):
+            return response.text.strip()
+
+        return "No response generated."
+
     except Exception as exc:
-        app.logger.warning("Ollama chat failed: %s", exc)
-        return (
-            "Unable to reach Ollama on port 11434. Start the daemon with "
-            "`ollama serve` and pull a model: `ollama pull llama3.2` or `ollama pull phi3`. "
-            f"Technical detail: {exc}"
-        )
-
+        app.logger.warning("Gemini API failed: %s", exc)
+        return f"AI service error: {str(exc)}"
 
 def trim_simulations_to_eight():
     """
@@ -501,7 +470,7 @@ def api_recommendations():
             "List prioritized actions for city administrators."
         )
 
-        text = call_ollama_chat(system_prompt, user_prompt)
+        text = call_ai_chat(system_prompt, user_prompt)
         return jsonify({"ok": True, "text": text})
     except Exception as exc:
         app.logger.error("recommendations error: %s", exc)
@@ -526,7 +495,7 @@ def api_chat():
             "and stay practical for students and city planners."
         )
         user_prompt = f"Scenario context: {json.dumps(context)}. User question: {question}"
-        text = call_ollama_chat(system_prompt, user_prompt)
+        text = call_ai_chat(system_prompt, user_prompt)
         return jsonify({"ok": True, "reply": text})
     except Exception as exc:
         app.logger.error("chat error: %s", exc)
