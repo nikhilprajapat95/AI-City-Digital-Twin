@@ -7,3 +7,4 @@ weasyprint>=61.0
 flask-sqlalchemy>=3.1.0
 google-generativeai
 python-dotenv
+gunicorn
