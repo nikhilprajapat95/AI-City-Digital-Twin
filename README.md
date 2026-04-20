@@ -17,7 +17,7 @@ Production-style Flask application for a final-year smart-city project. It combi
 
 ```bash
 python -m venv .venv
-.\.venv\Scripts\activate          # Windows PowerShell
+.\.venv\Scripts\activate          
 pip install -r requirements.txt
 python app.py
 ```
