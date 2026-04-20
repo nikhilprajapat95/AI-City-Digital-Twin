@@ -3,4 +3,4 @@ venv/
 env/
 bin/
 lib/
-.env/
+.env
